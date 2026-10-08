@@ -47,6 +47,25 @@ check(seen["key"] == "vb_test_example_secret", "api key")
 check(seen["idempotency"] == "order:1001:attempt:1", "idempotency")
 check(JSON.parse(seen["body"])["amount_minor"] == 2500, "amount")
 
+port, thread, seen = serve(201, "Created", '{"session_id":"7155d76a-9f81-40eb-9233-878aac50eb20","public_id":"nYVvXxsYGr5LZk8Dn7hU0Q","status":"open","checkout_url":"https://voybit.com/pay/nYVvXxsYGr5LZk8Dn7hU0Q","fiat_amount":"25","fiat_currency":"USD"}')
+client = Voybit::PaymentGateway::Client.new(api_key: "vb_test_example_secret", base_url: "http://127.0.0.1:#{port}/api/v1")
+created = client.create_checkout_session(
+  {
+    fiat_amount: "25.00",
+    fiat_currency: "USD",
+    description: "Order 1001",
+    metadata: { order_id: "1001" },
+    payment_window_seconds: 1800,
+    asset_id: "must-not-be-sent"
+  },
+  "order:1001:attempt:1"
+)
+thread.join
+sent_body = JSON.parse(seen["body"])
+check(created["checkout_session"]["status"] == "open", "checkout session")
+check(!sent_body.key?("asset_id"), "buyer chooses asset")
+check(sent_body["fiat_amount"] == "25.00", "checkout fiat amount")
+
 port, thread, = serve(422, "Unprocessable Entity", '{"error":{"code":"asset_unavailable","message":"That asset is not enabled for this gateway."}}')
 begin
   Voybit::PaymentGateway::Client.new(api_key: "vb_test_example_secret", base_url: "http://127.0.0.1:#{port}/api/v1").create_payment(

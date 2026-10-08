@@ -2,8 +2,8 @@
 
 Gem::Specification.new do |spec|
   spec.name = "voybit-payment-gateway"
-  spec.version = "0.1.0"
-  spec.summary = "Create a Voybit payment and verify its webhook."
+  spec.version = "0.2.0"
+  spec.summary = "Create buyer-choice Voybit checkout sessions and verify webhooks."
   spec.authors = ["Voybit"]
   spec.license = "MIT"
   spec.homepage = "https://github.com/VOYBIT/voybit-payment-gateway-ruby"
